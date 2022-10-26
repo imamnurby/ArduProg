@@ -1,6 +1,7 @@
 from torch.utils.data import DataLoader
 from sentence_transformers import losses, LoggingHandler
 from config import base_config, initialize_config
+from class_helper import SentenceTransformerCustom
 import logging
 import pandas as pd
 from datasets import Dataset

@@ -2,7 +2,7 @@ from datetime import datetime
 import os
 
 base_config = {
-    'model_path': 'codebert'    # bert, codebert, distillbert, roberta
+    'model_path': 'codebert',    # bert, codebert, distillbert, roberta
     
     # training configuration
     'num_epochs': 50,
