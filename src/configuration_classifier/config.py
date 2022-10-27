@@ -9,14 +9,11 @@ base_config = {
     'dataset_path': '../../data_training/config_classifier/train.csv',
 
     # training config
-    'epochs': 30,
+    'num_epochs': 30,
     'learning_rate': 5e-5,
     'batch_size': 32,
     'gradient_accumulation_steps': 1,
-    'num_epochs': 50,
     'learning_rate': 2e-5,
-    'warmup_steps': 1000,
-
 }
 
 def initialize_config(config):
