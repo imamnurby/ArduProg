@@ -39,7 +39,7 @@ train_loss_ConstrativeLoss = losses.TripletLoss(model=model)
 model.fit(train_objectives=[(train_dataloader_ConstrativeLoss, train_loss_ConstrativeLoss)],
           epochs=config['num_epochs'],
           warmup_steps=config['warmup_steps'],
-          output_path=config['model_save_path'],
+          output_path=config['output_dir'],
           use_amp=True,
           checkpoint_save_total_limit=1,
           optimizer_params = {'lr': config['learning_rate']},
