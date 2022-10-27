@@ -21,8 +21,6 @@ base_config = {
     'gradient_accumulation_step': 4,
     'warmup_steps': 1000,
     'learning_rate': 5e-5,
-    'batch_size': 64,
-
 }
 
 def initialize_config(config):
