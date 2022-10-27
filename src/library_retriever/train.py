@@ -43,6 +43,6 @@ model.fit(train_objectives=[(train_dataloader_ConstrativeLoss, train_loss_Constr
           use_amp=config['use_amp'],
           checkpoint_save_total_limit=config['checkpoint_save_total_limit'],
           optimizer_params = {'lr': config['learning_rate']},
-          checkpoint_path=config['checkpoint']
+          checkpoint_path=config['checkpoint'],
           checkpoint_save_steps = len(train_dataloader_ConstrativeLoss),
           )
