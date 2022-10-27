@@ -19,10 +19,10 @@ base_config = {
 
 def initialize_config(config):
     config_cp = config.copy()
-    config_cp['model_save_path'] = f'output/{config_cp["model_path"]}-'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    os.makedirs(config_cp['model_save_path'], exist_ok=True)
+    config_cp['output_dir'] = f'output/{config_cp["model_path"]}-'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    os.makedirs(config_cp['output_dir'], exist_ok=True)
 
-    config_cp['checkpoint'] = config_cp['model_save_path'] + '/checkpoint'
+    config_cp['checkpoint'] = config_cp['output_dir'] + '/checkpoint'
 
     if config['model_path'] == 'codebert':
         config_cp['model_path'] = 'microsoft/codebert-base'
