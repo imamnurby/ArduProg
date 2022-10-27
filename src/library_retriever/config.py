@@ -9,8 +9,6 @@ base_config = {
     'batch_size': 256,
     'learning_rate': 2e-5,
     'warmup_steps': 1000,
-    'use_amp': True,
-    'checkpoint_save_total_limit': 1,
     
     # dataset config
     'training_data_path': '../../data_training/library_retriever/train.csv'
