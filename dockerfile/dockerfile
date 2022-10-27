@@ -1,0 +1,9 @@
+FROM pytorch/pytorch:1.7.1-cuda11.0-cudnn8-runtime
+RUN apt-get update &&\
+apt-get -y install tmux&&\
+apt-get -y install python3.8&&\
+apt-get -y install python3-pip&&\
+apt-get -y install nano&&\
+apt-get -y install git&&\
+pip3 install --no-cache-dir datasets==2.1.0 numpy==1.23.3 pandas==1.4.2 sentence_transformers==2.2.2 tqdm==4.64.0 transformers==4.18.0
+
