@@ -89,7 +89,7 @@ def get_metadata_library(id_, db):
 
     output_dict = {}
     output_dict['Library Name'] = temp_db.iloc[0]['library']
-    output_dict['Sensor Type'] = temp_db.iloc[0]['cat']
+    output_dict['Sensor Type'] = temp_db.iloc[0]['cat'].capitalize()
     output_dict['Github URL'] = temp_db.iloc[0]['url']
     
     if temp_db.iloc[0].desc_ardulib != 'nan':
