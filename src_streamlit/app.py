@@ -17,7 +17,8 @@ tokenizer_path = {
     'lexical': 'imamnurby/bow-tokenizer-uncased'
 }
 
-db_path = '../assets/df_merge_4.csv'
+db_path_features = '../assets/generate_features_mapping/lib_to_features.csv'
+db_path_constructor = '../assets/generate_constructor_mapping/lib_to_constructor.csv'
 
 # initialize state session variable
 if "topk" not in st.session_state:
@@ -33,10 +34,11 @@ if "is_db_loaded" not in st.session_state:
     st.session_state.is_db_loaded = False
 
 # helper function
-def load_db(db_path):
-    db = pd.read_csv(db_path)
+def load_db(db_path_features, db_path_constructor):
+    db_features = pd.read_csv(db_path_features)
+    db_constructor = pd.read_csv(db_path_constructor)
     st.session_state.is_db_loaded = True
-    return db
+    return db_features, db_constructor
 
 class wrappedTokenizer(RobertaTokenizer):
     def __call__(self, text_input):
@@ -55,7 +57,7 @@ def load_retrieval_model(model_path, tokenizer_path, topk, db):
             })
         return index_list
 
-    index_list = generate_index(db[['id', 'dirname']])
+    index_list = generate_index(db[['id', 'library']])
     id_to_libname = {item['id']: item['library'] for item in index_list}
     libname_to_id = {item['library']: item['id'] for item in index_list}
 
@@ -86,7 +88,7 @@ def get_metadata_library(id_, db):
     assert(len(temp_db)==1)
 
     output_dict = {}
-    output_dict['Library Name'] = temp_db.iloc[0].dirname
+    output_dict['Library Name'] = temp_db.iloc[0]['library']
     output_dict['Sensor Type'] = temp_db.iloc[0]['cat']
     output_dict['Github URL'] = temp_db.iloc[0]['url']
     
@@ -104,8 +106,7 @@ def get_metadata_library(id_, db):
 # main code
 
 ## load db
-db = load_db(db_path)
-db.fillna("nan", inplace=True)
+db_features, db_constructor = load_db(db_path_features, db_path_constructor)
 
 ## load model
 if 'dl_retriever' not in st.session_state and 'lx_retriever' not in st.session_state and 'id_to_libname' not in st.session_state and 'libname_to_id' not in st.session_state:
@@ -113,7 +114,7 @@ if 'dl_retriever' not in st.session_state and 'lx_retriever' not in st.session_s
                                     model_path=model_path,
                                     tokenizer_path=tokenizer_path,
                                     topk=st.session_state.topk,
-                                    db=db
+                                    db=db_features
     )
 
 
@@ -153,7 +154,7 @@ if st.session_state.generate==True:
 
     st.subheader('Retrieval Results')
     for idx, result in enumerate(results):
-        metadata_dict = get_metadata_library(result, db)
+        metadata_dict = get_metadata_library(result, db_features)
         st.markdown(f'''
             
             **Prediction {idx+1}**
@@ -170,7 +171,7 @@ if st.session_state.generate==True:
     if len(results) > 2:    
         with st.expander("See more predictions"):
             for idx, result in enumerate(results[3:]):
-                metadata_dict = get_metadata_library(result, db)
+                metadata_dict = get_metadata_library(result, db_features)
                 st.markdown(f'''
                     **Prediction {idx+4}**
                     - Library Name: {metadata_dict.get("Library Name")}
