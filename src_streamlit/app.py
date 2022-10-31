@@ -80,12 +80,32 @@ def load_retrieval_model(model_path, tokenizer_path, topk, db):
     st.session_state.is_dl_loaded = True
     
     return dl_retriever, lx_retriever, id_to_libname, libname_to_id
-        
+
+def get_metadata_library(id_, db):
+    temp_db = db[db.id==id_]
+    assert(len(temp_db)==1)
+
+    output_dict = {}
+    output_dict['Library Name'] = temp_db.iloc[0].dirname
+    output_dict['Sensor Type'] = temp_db.iloc[0]['cat']
+    output_dict['Github URL'] = temp_db.iloc[0]['url']
+    
+    if temp_db.iloc[0].desc_ardulib != 'nan':
+        output_dict['Description'] = temp_db.iloc[0].desc_ardulib
+    
+    elif temp_db.iloc[0].desc_repo != 'nan':
+        output_dict['Description'] = temp_db.iloc[0].desc_repo
+
+    else:
+        output_dict['Description'] = "Description not found"
+    
+    return output_dict
 
 # main code
 
 ## load db
 db = load_db(db_path)
+db.fillna("nan", inplace=True)
 
 ## load model
 if 'dl_retriever' not in st.session_state and 'lx_retriever' not in st.session_state and 'id_to_libname' not in st.session_state and 'libname_to_id' not in st.session_state:
@@ -98,6 +118,7 @@ if 'dl_retriever' not in st.session_state and 'lx_retriever' not in st.session_s
 
 
 ## enter query
+st.header("STEP 1: Enter Query")
 input_query = st.text_input(
     'Enter some text 👇',
     label_visibility='collapsed',
@@ -116,27 +137,52 @@ model_type = st.radio(
 
 ## button to perform retrieval
 generate = st.button(
-    label='Generate',
+    label='Retrieve',
     key='generate',
 )
 
 if st.session_state.generate==True:
     results = []
-    if st.session_state.model_type=="Deep Learning":
+    if st.session_state.model_type == 'Deep Learning':
         results = st.session_state.dl_retriever(input_query)
 
-    elif st.session_state.model_type=="BM25":
+    elif st.session_state.model_type == 'BM25':
         results = st.session_state.lx_retriever(input_query)
 
-    results = [item.get("id") for item in results]
+    results = [item.get('id') for item in results]
 
+    st.subheader('Retrieval Results')
+    for idx, result in enumerate(results):
+        metadata_dict = get_metadata_library(result, db)
+        st.markdown(f'''
+            
+            **Prediction {idx+1}**
+            - Library Name: {metadata_dict.get("Library Name")}
+            - Description: {metadata_dict.get("Description")}
+            - Sensory Category: {metadata_dict.get("Category")}
+            - Github URL: {metadata_dict.get("Github URL")}
+            ***
+        ''')
 
-    translated_results = [st.session_state.id_to_libname[id_] for id_ in results]
+        if idx == 2:
+            break
 
-    st.write(translated_results)
-    st.write(results)
+    if len(results) > 2:    
+        with st.expander("See more predictions"):
+            for idx, result in enumerate(results[3:]):
+                metadata_dict = get_metadata_library(result, db)
+                st.markdown(f'''
+                    **Prediction {idx+4}**
+                    - Library Name: {metadata_dict.get("Library Name")}
+                    - Description: {metadata_dict.get("Description")}
+                    - Sensory Category: {metadata_dict.get("Category")}
+                    - Github URL: {metadata_dict.get("Github URL")}
+                    ***
+                ''')
+            
+st.header("STEP 2: Select a Library")
 
 
 # debug
 # st.write(dict(st.session_state.items()))
-st.write(db)
+# st.write(db)
