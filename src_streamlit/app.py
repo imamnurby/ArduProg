@@ -160,7 +160,7 @@ if st.session_state.generate==True:
             **Prediction {idx+1}**
             - Library Name: {metadata_dict.get("Library Name")}
             - Description: {metadata_dict.get("Description")}
-            - Sensory Category: {metadata_dict.get("Category")}
+            - Sensory Category: {metadata_dict.get("Sensor Type")}
             - Github URL: {metadata_dict.get("Github URL")}
             ***
         ''')
@@ -176,7 +176,7 @@ if st.session_state.generate==True:
                     **Prediction {idx+4}**
                     - Library Name: {metadata_dict.get("Library Name")}
                     - Description: {metadata_dict.get("Description")}
-                    - Sensory Category: {metadata_dict.get("Category")}
+                    - Sensory Category: {metadata_dict.get("Sensor Type")}
                     - Github URL: {metadata_dict.get("Github URL")}
                     ***
                 ''')
