@@ -1,6 +1,6 @@
 from cherche import retrieve
 from sentence_transformers import SentenceTransformer, util
-from transformers import RobertaTokenizer, AutoModel, AutoTokenizer
+from transformers import RobertaTokenizer, EncoderDecoderModel
 import pandas as pd
 import streamlit as st
 
@@ -10,7 +10,7 @@ st.title("ArduProg: From Hardware Setups to Sample Source Code Generation")
 # initialize global variable
 model_path = {
     'dl_retrieval': '../models/TripletLoss_uncased_iter5_sim_guidance_distilbert-2022-09-29_22-01-04',
-    'dl_generative': '../models/codebert2codebert'
+    'dl_generative': '../models/codebert2codebert',
     'lexical': None,
 }
 
@@ -36,7 +36,16 @@ if "is_db_loaded" not in st.session_state:
     st.session_state.is_db_loaded = False
 
 if "default_library_option" not in st.session_state:
-    st.session_state.default_library_option = (None, )
+    st.session_state.default_library_option = ("None", )
+
+if 'num_beams' not in st.session_state:
+    st.session_state.num_beams = 10
+
+if 'num_return_sequences' not in st.session_state:
+    st.session_state.num_return_sequences = 10
+
+if 'retrieval_results' not in st.session_state:
+    st.session_state.results = []
 
 # helper function
 def load_db(db_path_features, db_path_constructor):
@@ -86,8 +95,8 @@ def load_retrieval_model(model_path, tokenizer_path, topk, db):
     dl_retriever = dl_retriever.add(documents=index_list)
     st.session_state.is_dl_loaded = True
 
-    tokenizer_pattern_gen = AutoTokenizer.from_pretrained(model_path['dl_generative'])
-    pattern_gen = AutoModel.from_pretrained(model_path['dl_generative']) 
+    tokenizer_pattern_gen = RobertaTokenizer.from_pretrained(model_path['dl_generative'])
+    pattern_gen = EncoderDecoderModel.from_pretrained(model_path['dl_generative']) 
     
     return dl_retriever, lx_retriever, id_to_libname, libname_to_id, tokenizer_pattern_gen, pattern_gen
 
@@ -152,21 +161,18 @@ generate = st.button(
 
 ## logic
 if st.session_state.generate==True:
-    results = []
     translated_results = []
     translated_results.append('None')
     if st.session_state.model_type == 'Deep Learning':
-        results = st.session_state.dl_retriever(input_query)
+        st.session_state.retrieval_results = st.session_state.dl_retriever(input_query)
 
     elif st.session_state.model_type == 'BM25':
-        results = st.session_state.lx_retriever(input_query)
+        st.session_state.retrieval_results = st.session_state.lx_retriever(input_query)
 
-    results = [item.get('id') for item in results]
-    if 'retrieval_results' not in st.session_state:
-        st.session_state.retrieval_results = results
+    st.session_state.retrieval_results = [item.get('id') for item in st.session_state.retrieval_results]
 
     # st.subheader('Retrieval Results')
-    for idx, result in enumerate(results):
+    for idx, result in enumerate(st.session_state.retrieval_results):
         metadata_dict = get_metadata_library(result, db_features)
         translated_results.append(
             f'{idx+1} - {metadata_dict.get("Library Name")} - {metadata_dict.get("Description")}' 
@@ -213,13 +219,34 @@ selected_library = st.selectbox(
 
 if selected_library != 'None':
     ranking = selected_library.split(" - ")[0]
-    metadata_dict = get_metadata_library(st.session_state.retrieval_results[int(ranking)], db_features)
+    metadata_dict = get_metadata_library(st.session_state.retrieval_results[int(ranking)-1], db_features)
     st.markdown(f'''
         - Library Name: {metadata_dict.get("Library Name")}
         - Description: {metadata_dict.get("Description")}
         - Category: {metadata_dict.get("Sensor Type")}
         - Github URL: {metadata_dict.get("Github URL")}
     ''')
+
+    st.session_state.pattern_gen_input = st.session_state.tokenizer_pattern_gen(st.session_state.input_query, return_tensors="pt").input_ids
+    st.session_state.pattern_gen_output = st.session_state.pattern_gen.generate(
+        st.session_state.pattern_gen_input,
+        num_beams=(st.session_state.num_beams),
+        num_return_sequences=(st.session_state.num_return_sequences))
+
+    st.session_state.pattern_gen_decoded = st.session_state.tokenizer_pattern_gen.batch_decode(st.session_state.pattern_gen_output, skip_special_tokens=True)
+    st.subheader("Hardware Configuration")
+    st.write("Coming soon")
+    st.subheader("Object Declaration")
+    st.write("Coming soon")
+    st.subheader("API patterns")
+    for idx, item in enumerate(st.session_state.pattern_gen_decoded):
+        item = item.split()
+        item = "\n".join(item)
+        st.markdown(f'''
+            {item}
+        ''')
+    
+    # st.write(st.session_state.pattern_gen_decoded)
 
 # debug
 # st.write(dict(st.session_state.items()))
