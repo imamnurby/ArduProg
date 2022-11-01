@@ -1,6 +1,6 @@
 from cherche import retrieve
 from sentence_transformers import SentenceTransformer, util
-from transformers import RobertaTokenizer
+from transformers import RobertaTokenizer, AutoModel, AutoTokenizer
 import pandas as pd
 import streamlit as st
 
@@ -66,13 +66,13 @@ def load_retrieval_model(model_path, tokenizer_path, topk, db):
     id_to_libname = {item['id']: item['library'] for item in index_list}
     libname_to_id = {item['library']: item['id'] for item in index_list}
 
-    tokenizer = wrappedTokenizer.from_pretrained(tokenizer_path['lexical'])
+    tokenizer_retriever = wrappedTokenizer.from_pretrained(tokenizer_path['lexical'])
     lx_retriever = retrieve.BM25Okapi(
         key='id',
         on='library',
         documents=index_list,
         k=topk,
-        tokenizer=tokenizer
+        tokenizer=tokenizer_retriever
     )
     st.session_state.is_lexical_loaded = True
 
@@ -85,8 +85,11 @@ def load_retrieval_model(model_path, tokenizer_path, topk, db):
     )
     dl_retriever = dl_retriever.add(documents=index_list)
     st.session_state.is_dl_loaded = True
+
+    tokenizer_pattern_gen = AutoTokenizer.from_pretrained(model_path['dl_generative'])
+    pattern_gen = AutoModel.from_pretrained(model_path['dl_generative']) 
     
-    return dl_retriever, lx_retriever, id_to_libname, libname_to_id
+    return dl_retriever, lx_retriever, id_to_libname, libname_to_id, tokenizer_pattern_gen, pattern_gen
 
 def get_metadata_library(id_, db):
     temp_db = db[db.id==id_]
@@ -114,8 +117,8 @@ def get_metadata_library(id_, db):
 db_features, db_constructor = load_db(db_path_features, db_path_constructor)
 
 ## load model
-if 'dl_retriever' not in st.session_state and 'lx_retriever' not in st.session_state and 'id_to_libname' not in st.session_state and 'libname_to_id' not in st.session_state:
-    st.session_state.dl_retriever, st.session_state.lx_retriever, st.session_state.id_to_libname, st.session_state.libname_to_id = load_retrieval_model(
+if 'dl_retriever' not in st.session_state and 'lx_retriever' not in st.session_state and 'id_to_libname' not in st.session_state and 'libname_to_id' not in st.session_state and 'tokenizer_pattern_gen' not in st.session_state and 'pattern_gen' not in st.session_state.pattern_gen:
+    st.session_state.dl_retriever, st.session_state.lx_retriever, st.session_state.id_to_libname, st.session_state.libname_to_id, st.session_state.tokenizer_pattern_gen, st.session_state.pattern_gen = load_retrieval_model(
                                     model_path=model_path,
                                     tokenizer_path=tokenizer_path,
                                     topk=st.session_state.topk,
