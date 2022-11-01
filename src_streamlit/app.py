@@ -117,7 +117,7 @@ def get_metadata_library(id_, db):
 db_features, db_constructor = load_db(db_path_features, db_path_constructor)
 
 ## load model
-if 'dl_retriever' not in st.session_state and 'lx_retriever' not in st.session_state and 'id_to_libname' not in st.session_state and 'libname_to_id' not in st.session_state and 'tokenizer_pattern_gen' not in st.session_state and 'pattern_gen' not in st.session_state.pattern_gen:
+if 'dl_retriever' not in st.session_state and 'lx_retriever' not in st.session_state and 'tokenizer_pattern_gen' not in st.session_state and 'pattern_gen' not in st.session_state.pattern_gen:
     st.session_state.dl_retriever, st.session_state.lx_retriever, st.session_state.id_to_libname, st.session_state.libname_to_id, st.session_state.tokenizer_pattern_gen, st.session_state.pattern_gen = load_retrieval_model(
                                     model_path=model_path,
                                     tokenizer_path=tokenizer_path,
