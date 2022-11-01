@@ -4,16 +4,18 @@ from transformers import RobertaTokenizer
 import pandas as pd
 import streamlit as st
 
+
 st.title("ArduProg: From Hardware Setups to Sample Source Code Generation")
 
 # initialize global variable
 model_path = {
-    'dl': '../models/TripletLoss_uncased_iter5_sim_guidance_distilbert-2022-09-29_22-01-04',
+    'dl_retrieval': '../models/TripletLoss_uncased_iter5_sim_guidance_distilbert-2022-09-29_22-01-04',
+    'dl_generative': '../models/codebert2codebert'
     'lexical': None,
 }
 
 tokenizer_path = {
-    'dl': None,
+    'dl_retrieval': None,
     'lexical': 'imamnurby/bow-tokenizer-uncased'
 }
 
@@ -32,6 +34,9 @@ if "is_dl_loaded" not in st.session_state:
 
 if "is_db_loaded" not in st.session_state:
     st.session_state.is_db_loaded = False
+
+if "default_library_option" not in st.session_state:
+    st.session_state.default_library_option = (None, )
 
 # helper function
 def load_db(db_path_features, db_path_constructor):
@@ -74,7 +79,7 @@ def load_retrieval_model(model_path, tokenizer_path, topk, db):
     dl_retriever = retrieve.Encoder(
         key='id',
         on='library',
-        encoder=SentenceTransformer(model_path['dl']).encode,
+        encoder=SentenceTransformer(model_path['dl_retrieval']).encode,
         k=topk,
         path=f"../temp/dl.pkl"
     )
@@ -118,7 +123,7 @@ if 'dl_retriever' not in st.session_state and 'lx_retriever' not in st.session_s
     )
 
 
-## enter query
+## STEP1: enter query
 st.header("STEP 1: Enter Query")
 input_query = st.text_input(
     'Enter some text 👇',
@@ -142,8 +147,11 @@ generate = st.button(
     key='generate',
 )
 
+## logic
 if st.session_state.generate==True:
     results = []
+    translated_results = []
+    translated_results.append('None')
     if st.session_state.model_type == 'Deep Learning':
         results = st.session_state.dl_retriever(input_query)
 
@@ -151,38 +159,64 @@ if st.session_state.generate==True:
         results = st.session_state.lx_retriever(input_query)
 
     results = [item.get('id') for item in results]
+    if 'retrieval_results' not in st.session_state:
+        st.session_state.retrieval_results = results
 
-    st.subheader('Retrieval Results')
+    # st.subheader('Retrieval Results')
     for idx, result in enumerate(results):
         metadata_dict = get_metadata_library(result, db_features)
-        st.markdown(f'''
+        translated_results.append(
+            f'{idx+1} - {metadata_dict.get("Library Name")} - {metadata_dict.get("Description")}' 
+        )
+        # st.markdown(f'''
             
-            **Prediction {idx+1}**
-            - Library Name: {metadata_dict.get("Library Name")}
-            - Description: {metadata_dict.get("Description")}
-            - Sensory Category: {metadata_dict.get("Sensor Type")}
-            - Github URL: {metadata_dict.get("Github URL")}
-            ***
-        ''')
+        #     **Prediction {idx+1}**
+        #     - Library Name: {metadata_dict.get("Library Name")}
+        #     - Description: {metadata_dict.get("Description")}
+        #     - Sensory Category: {metadata_dict.get("Sensor Type")}
+        #     - Github URL: {metadata_dict.get("Github URL")}
+        #     ***
+        # ''')
 
-        if idx == 2:
-            break
+        # if idx == 2:
+        #     break
 
-    if len(results) > 2:    
-        with st.expander("See more predictions"):
-            for idx, result in enumerate(results[3:]):
-                metadata_dict = get_metadata_library(result, db_features)
-                st.markdown(f'''
-                    **Prediction {idx+4}**
-                    - Library Name: {metadata_dict.get("Library Name")}
-                    - Description: {metadata_dict.get("Description")}
-                    - Sensory Category: {metadata_dict.get("Sensor Type")}
-                    - Github URL: {metadata_dict.get("Github URL")}
-                    ***
-                ''')
-            
+    # if len(results) > 2:    
+    #     with st.expander("See more predictions"):
+    #         for idx, result in enumerate(results[3:]):
+    #             metadata_dict = get_metadata_library(result, db_features)
+    #             translated_results.append(
+    #                 f'{metadata_dict.get("Library Name")} - {metadata_dict.get("Description")}' 
+    #             )
+    #             st.markdown(f'''
+    #                 **Prediction {idx+4}**
+    #                 - Library Name: {metadata_dict.get("Library Name")}
+    #                 - Description: {metadata_dict.get("Description")}
+    #                 - Sensory Category: {metadata_dict.get("Sensor Type")}
+    #                 - Github URL: {metadata_dict.get("Github URL")}
+    #                 ***
+    #             ''')
+    
+    st.session_state.default_library_option = translated_results
+
+# STEP2: Select a library, then predict hardware configuration and api sequennce pattern
 st.header("STEP 2: Select a Library")
+selected_library = st.selectbox(
+    'Choose one of the predictions below (ranked by the similarity score)',
+    key='selected_library',
+    options=st.session_state.default_library_option,
+    index=0,
+)
 
+if selected_library != 'None':
+    ranking = selected_library.split(" - ")[0]
+    metadata_dict = get_metadata_library(st.session_state.retrieval_results[int(ranking)], db_features)
+    st.markdown(f'''
+        - Library Name: {metadata_dict.get("Library Name")}
+        - Description: {metadata_dict.get("Description")}
+        - Category: {metadata_dict.get("Sensor Type")}
+        - Github URL: {metadata_dict.get("Github URL")}
+    ''')
 
 # debug
 # st.write(dict(st.session_state.items()))
