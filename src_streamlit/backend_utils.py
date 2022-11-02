@@ -112,36 +112,36 @@ def load_generative_model_codebert(model_path):
     return tokenizer, generative_model
 
 
-def get_metadata_library(id_, db_metadata):
+def get_metadata_library(predictions, db_metadata):
     '''
     Function to get the metadata of a library using the library unique id
 
     Params:
-    id_ (int): a library unique id
+    predictions (list): a list of dictionary containing the prediction details
     db_metadata: a dataframe containing metadata information about the library
 
     Returns:
     metadata_dict (dict): a dictionary where the key is the metadata type and the value is the metadata value
     '''
-    temp_db = db[db.id==id_]
-    assert(len(temp_db)==1)
+    predictions_cp = predictions.copy()
+    for prediction_dict in predictions_cp:
+        temp_db = db_metadata[db_metadata.id==prediction_dict.get('id')]
+        assert(len(temp_db)==1)
 
-    metadata_dict = {}
-    metadata_dict['Library Name'] = temp_db.iloc[0]['library']
-    metadata_dict['Sensor Type'] = temp_db.iloc[0]['cat'].capitalize()
-    metadata_dict['Github URL'] = temp_db.iloc[0]['url']
-    
-    # prefer the description from the arduino library list, if not found use the repo description
-    if temp_db.iloc[0].desc_ardulib != 'nan':
-        metadata_dict['Description'] = temp_db.iloc[0].desc_ardulib
-    
-    elif temp_db.iloc[0].desc_repo != 'nan':
-        metadata_dict['Description'] = temp_db.iloc[0].desc_repo
+        prediction_dict['Sensor Type'] = temp_db.iloc[0]['cat'].capitalize()
+        prediction_dict['Github URL'] = temp_db.iloc[0]['url']
+        
+        # prefer the description from the arduino library list, if not found use the repo description
+        if temp_db.iloc[0].desc_ardulib != 'nan':
+            prediction_dict['Description'] = temp_db.iloc[0].desc_ardulib
+        
+        elif temp_db.iloc[0].desc_repo != 'nan':
+            prediction_dict['Description'] = temp_db.iloc[0].desc_repo
 
-    else:
-        metadata_dict['Description'] = "Description not found"
+        else:
+            prediction_dict['Description'] = "Description not found"
     
-    return metadata_dict
+    return predictions_cp
 
 def id_to_libname(id_, db_metadata):
     '''
@@ -454,4 +454,6 @@ def make_predictions(input_query,
     for output_dict, hw_config in zip(predictions, hw_configs):
         output_dict['hw_config'] = hw_config
     
+    predictions = get_metadata_library(predictions, db_metadata)
+
     return predictions
