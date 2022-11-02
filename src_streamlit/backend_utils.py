@@ -1,6 +1,7 @@
 from cherche import retrieve
 from sentence_transformers import SentenceTransformer, util
 from transformers import RobertaTokenizer, EncoderDecoderModel
+import pandas as pd
 
 class wrappedTokenizer(RobertaTokenizer):
     def __call__(self, text_input):
@@ -51,7 +52,7 @@ def load_retrieval_model_lexical(tokenizer_path, max_k, db_metadata):
     index_list = generate_index(db_metadata[['id', 'library']])
 
     # load model
-    tokenizer = wrappedTokenizer.from_pretrained(tokenizer_path['lexical'])
+    tokenizer = wrappedTokenizer.from_pretrained(tokenizer_path)
     retrieval_model = retrieve.BM25Okapi(
         key='id',
         on='library',
@@ -167,7 +168,7 @@ def retrieve_libraries(retrieval_model, model_input, db_metadata):
     '''
     results = retrieval_model(model_input)
     library_ids = [item.get('id') for item in results]
-    library_names = [id_to_libname(item) for item in library_ids]
+    library_names = [id_to_libname(item, db_metadata) for item in library_ids]
     return library_ids, library_names
 
 def prepare_input_generative_model(library_ids, db_constructor):
@@ -185,7 +186,7 @@ def prepare_input_generative_model(library_ids, db_constructor):
     for id_ in library_ids:
         temp_db = db_constructor[db_constructor.id==id_]
         output_dict[id_] = []
-        for id__, library_name, methods, constructor:
+        for id__, library_name, methods, constructor in temp_db.values:
             output_dict[id_].append(
                 f'{library_name} [SEP] {constructor}'
             )
@@ -217,47 +218,7 @@ def generate_api_usage_patterns(generative_model, tokenizer, model_input, num_be
     )
     return api_usage_patterns
 
-def predict(
-    input_query, 
-    model_retrieval, 
-    model_generative, 
-    tokenizer_generative, 
-    db_metadata, 
-    db_constructor,
-    num_beams,
-    num_return_sequences
-    ):
-    '''
-    Function to retrieve relevant libraries, generate API usage patterns for each library, and predict the hardware configuration
 
-    Params:
-    input
-    '''
-    library_ids, library_names = retrieve_libraries(model_retrieval, input_query, db_metadata)
-
-    input_generative_model_dict = prepare_input_generative_model(library_ids, db_constructor)
-
-    api_usage_patterns_dict = {}
-    for id_ in input_generative_model_dict:
-        for input_generative_model in input_generative_model_dict.get(id_):
-            api_usage_patterns = generate_api_usage_patterns(
-                model_generative,
-                tokenizer_generative,
-                input_generative_model,
-                num_beams,
-                num_return_sequences
-            )
-
-            temp = input_generative_model.split("[SEP]")
-            library_name = temp[0].strip()
-            constructor = temp[1].strip()
-
-            if library_name not in api_usage_patterns_dict:
-                api_usage_patterns_dict[library_name] = {}
-            
-            api_usage_patterns_dict[library_name][constructor] = api_usage_patterns
-    
-    return api_usage_patterns_dict
 
 
 
