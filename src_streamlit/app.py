@@ -1,5 +1,5 @@
 import streamlit as st
-from backend_utils import initialize_all_components, retrieve_libraries, generate_api_usage_patterns_batch, predict_hw_config
+from backend_utils import initialize_all_components, make_predictions
 from config import classifier_class_mapping, config
 
 st.title("ArduProg: From Hardware Setups to Sample Source Code Generation")
@@ -41,39 +41,22 @@ def predict(
     config
     ):
     '''
-    Function to retrieve relevant libraries, generate API usage patterns for each library, and predict the hardware configuration
-
-    Params:
-    input
+    wrapper to the make prediction function
     '''
-    library_ids, library_names = retrieve_libraries(model_retrieval, input_query, db_metadata)
-
-    predictions = generate_api_usage_patterns_batch(
-        model_generative,
-        tokenizer_generative,
-        library_ids,
-        db_constructor,
-        config.get('num_beams'),
-        config.get('num_return_sequences')
+    predictions = make_predictions(
+        input_query, 
+        model_retrieval, 
+        model_generative,  
+        model_classifier, classifier_head,
+        tokenizer_generative, tokenizer_classifier,
+        db_metadata, db_constructor,
+        config
     )
-    
-    hw_configs = predict_hw_config(
-        model_classifier,
-        tokenizer_classifier,
-        classifier_head,
-        library_ids,
-        db_metadata,
-        config.get('max_length')
-    )
-
-    for output_dict, hw_config in zip(predictions, hw_configs):
-        output_dict['hw_config'] = hw_config
 
     st.session_state.prediction = predictions
 
 
 st.header("Enter a Query")
-st.write(st.session_state)
 input_query = st.text_input(
     'Enter some text 👇',
     max_chars=150,

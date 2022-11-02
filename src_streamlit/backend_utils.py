@@ -373,6 +373,20 @@ def predict_hw_config(classifier_model, classifier_tokenizer, classifier_head, l
 
 
 def initialize_all_components(config):
+    '''
+    Function to initialize all components of ArduProg
+
+    Params:
+    config (dict): a dictionary containing the configuration to initialize all components
+
+    Returns:
+    db_metadata (pandas dataframe): a dataframe containing metadata information about the library
+    db_constructor (pandas dataframe): a dataframe containing the mapping of library names to valid constructor
+    model_retrieval, model_generative : a huggingface model
+    tokenizer_generative, tokenizer_classifier: a huggingface tokenizer
+    model_classifier: a huggingface model
+    classifier_head: a random forest model
+    '''
     # load db
     db_metadata, db_constructor = load_db(
         config.get('db_metadata_path'), 
@@ -388,9 +402,56 @@ def initialize_all_components(config):
 
     tokenizer_generative, model_generative = load_generative_model_codebert(config.get('model_path_generative'))
 
-    model_classifier, head, tokenizer_classifier = load_hw_classifier(
+    model_classifier, classifier_head, tokenizer_classifier = load_hw_classifier(
         config.get('model_path_classifier'),
         config.get('classifier_head_path')
     )
 
-    return db_metadata, db_constructor, model_retrieval, model_generative, tokenizer_generative, model_classifier, head, tokenizer_classifier
+    return db_metadata, db_constructor, model_retrieval, model_generative, tokenizer_generative, model_classifier, classifier_head, tokenizer_classifier
+
+def make_predictions(input_query, 
+    model_retrieval, 
+    model_generative,  
+    model_classifier, classifier_head,
+    tokenizer_generative, tokenizer_classifier,
+    db_metadata, db_constructor,
+    config):
+    '''
+    Function to retrieve relevant libraries, generate API usage patterns, and predict the hw configs
+
+    Params:
+    input_query (string): a query from the user
+    model_retrieval, model_generative, model_classifier: a huggingface model
+    classifier_head: a random forest classifier
+    toeknizer_generative, tokenizer_classifier: a hugggingface tokenizer,
+    db_metadata (pandas dataframe): a dataframe containing metadata information about the library
+    db_constructor (pandas dataframe): a dataframe containing the mapping of library names to valid constructor
+    config (dict): a dictionary containing the configuration to initialize all components
+    
+    Returns:
+    predictions (list): a list of dictionary containing the prediction details
+    '''
+    library_ids, library_names = retrieve_libraries(model_retrieval, input_query, db_metadata)
+
+    predictions = generate_api_usage_patterns_batch(
+        model_generative,
+        tokenizer_generative,
+        library_ids,
+        db_constructor,
+        config.get('num_beams'),
+        config.get('num_return_sequences')
+    )
+    
+    hw_configs = predict_hw_config(
+        model_classifier,
+        tokenizer_classifier,
+        classifier_head,
+        library_ids,
+        db_metadata,
+        config.get('max_length')
+    )
+
+    for output_dict, hw_config in zip(predictions, hw_configs):
+        output_dict['hw_config'] = hw_config
+    
+    return predictions
