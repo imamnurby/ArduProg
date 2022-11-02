@@ -240,29 +240,6 @@ def prepare_input_classification_model(id_, db_metadata):
     feature = temp_db.iloc[0].features
     return feature
 
-class hw_classifier:
-    def __init__(self, embedding_model_path, classifier_path, class_mapping):
-        self.tokenizer = RobertaTokenizer.from_pretrained(embedding_model_path)
-        self.embedding_model = RobertaModel.from_pretrained(embedding_model_path)
-        with open(classifier_path, 'rb') as f:
-            self.classifier_head = pickle.load(f)
-        self.class_mapping = class_mapping
-    
-    def predict_config(self, features, max_length):
-        tokenized_features = self.tokenizer(
-            features,
-            max_length=max_length,
-            padding='max_length',
-            return_tensors='pt',
-            truncation=True
-        )
-        with torch.no_grad():
-            embedding_features = self.embedding_model(**tokenized_features).pooler_output.numpy()
-        prediction = self.classifier_head.predict_proba(embedding_features).tolist()
-        # prediction = np.argmax(prediction, axis=1).tolist()
-        # prediction = [self.class_mapping.get(idx) for idx in prediction]
-        return prediction
-
 def load_hw_classifier(model_path_classifier, model_path_classifier_head):
     '''
     Function to load a classifier model and classifier head
