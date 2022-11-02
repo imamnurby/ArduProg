@@ -17,19 +17,19 @@ def generate_index(db):
         })
     return index_list
 
-def load_db(db_features_path, db_constructor_path):
+def load_db(db_metadata_path, db_constructor_path):
     '''
     Function to load dataframe
 
     Params:
-    db_features_path (string): the path to the db_metadata file
+    db_metadata_path (string): the path to the db_metadata file
     db_constructor_path (string): the path to the db_constructor file
 
     Output:
     db_metadata (pandas dataframe): a dataframe containing metadata information about the library
     db_constructor (pandas dataframe): a dataframe containing the mapping of library names to valid constructor
     '''
-    db_metadata = pd.read_csv(db_features_path)
+    db_metadata = pd.read_csv(db_metadata_path)
     db_constructor = pd.read_csv(db_constructor_path)
     return db_metadata, db_constructor
 
