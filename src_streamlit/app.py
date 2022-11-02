@@ -1,6 +1,6 @@
 import streamlit as st
-from backend_utils import load_db, load_retrieval_model_lexical, load_generative_model_codebert, retrieve_libraries, prepare_input_generative_model, generate_api_usage_patterns
-from config import config
+from backend_utils import load_db, load_retrieval_model_lexical, load_generative_model_codebert, load_hw_classifier, retrieve_libraries, prepare_input_generative_model, generate_api_usage_patterns, hw_classifier, predict_hw_config
+from config import config, classifier_class_mapping
 
 st.title("ArduProg: From Hardware Setups to Sample Source Code Generation")
 
@@ -22,8 +22,17 @@ if 'model_retrieval' not in st.session_state:
 if 'tokenizer_generative' not in st.session_state and 'model_generative' not in st.session_state:
     st.session_state.tokenizer_generative, st.session_state.model_generative = load_generative_model_codebert(config.get('model_path_generative'))
 
+if 'model_classifier' not in st.session_state and 'head' not in st.session_state and 'tokenizer_classifier' not in st.session_state:
+    st.session_state.model_classifier, st.session_state.head, st.session_state.tokenizer_classifier = load_hw_classifier(
+        config.get('model_path_classifier'),
+        config.get('classifier_head_path')
+    )
+
 if 'prediction' not in st.session_state:
     st.session_state.prediction = None
+
+if 'hw_configs' not in st.session_state:
+    st.session_state.hw_configs = None
 
 def predict(
     input_query, 
@@ -45,7 +54,7 @@ def predict(
 
     input_generative_model_dict = prepare_input_generative_model(library_ids, db_constructor)
 
-    api_usage_patterns_dict = {}
+    output_dict = {}
     for id_ in input_generative_model_dict:
         for input_generative_model in input_generative_model_dict.get(id_):
             api_usage_patterns = generate_api_usage_patterns(
@@ -60,12 +69,30 @@ def predict(
             library_name = temp[0].strip()
             constructor = temp[1].strip()
 
-            if library_name not in api_usage_patterns_dict:
-                api_usage_patterns_dict[library_name] = {}
+            if library_name not in output_dict:
+                output_dict[library_name] = {}
             
-            api_usage_patterns_dict[library_name][constructor] = api_usage_patterns
+            output_dict[library_name][constructor] = api_usage_patterns
     
-    st.session_state.prediction = api_usage_patterns_dict
+    hw_configs = predict_hw_config(
+        st.session_state.model_classifier,
+        st.session_state.tokenizer_classifier,
+        st.session_state.head,
+        library_ids,
+        db_metadata,
+        config.get('max_length')
+    )
+
+    # hw_configs = predict_hw_config(
+    #     st.session_state.hw_classifier,
+    #     library_ids,
+    #     db_metadata,
+    #     config.get('max_length')
+    # )
+
+
+    st.session_state.prediction = output_dict
+    st.session_state.hw_configs = hw_configs
     
 
 
@@ -95,3 +122,8 @@ generate = st.button(
 
 if st.session_state.prediction != None:
     st.write(st.session_state.prediction)
+
+if st.session_state.hw_configs != None:
+    st.write(st.session_state.hw_configs)
+
+st.write(db_metadata[db_metadata.library=="DFRobot_DHT11"].features.tolist())
