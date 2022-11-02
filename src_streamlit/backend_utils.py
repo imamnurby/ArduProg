@@ -1,7 +1,7 @@
 from cherche import retrieve
 from sentence_transformers import SentenceTransformer, util
 from transformers import RobertaTokenizer, RobertaModel, EncoderDecoderModel
-from config import classifier_class_mapping
+from config import classifier_class_mapping, config
 import pandas as pd
 import numpy as np 
 import pickle
@@ -224,6 +224,53 @@ def generate_api_usage_patterns(generative_model, tokenizer, model_input, num_be
     )
     return api_usage_patterns
 
+def generate_api_usage_patterns_batch(generative_model, tokenizer, library_ids, db_constructor, num_beams, num_return_sequences):
+    '''
+    Function to generate API usage patterns in batch
+
+    Params:
+    generative_model: a huggingface model
+    tokenizer: a huggingface tokenizer
+    library_ids (list): a list of libary ids
+    db_constructor (pandas dataframe):  a dataframe containing the mapping of library names to valid constructor
+    num_beams (int): the beam width used for decoding
+    num_return_sequences (int): how many API usage patterns are returned by the model
+
+    Returns:
+    predictions (list): a list of dictionary containing the api usage patterns, library name, and id
+    '''
+    input_generative_model_dict = prepare_input_generative_model(library_ids, db_constructor)
+
+    predictions = []
+    for id_ in input_generative_model_dict:
+        temp_dict = {
+            'id': id_,
+            'library_name': None,
+            'hw_config': None,
+            'usage_patterns': {}
+        }
+
+        for input_generative_model in input_generative_model_dict.get(id_):
+            api_usage_patterns = generate_api_usage_patterns(
+                generative_model,
+                tokenizer,
+                input_generative_model,
+                num_beams,
+                num_return_sequences
+            )
+
+            temp = input_generative_model.split("[SEP]")
+            library_name = temp[0].strip()
+            constructor = temp[1].strip()
+
+            assert(constructor not in temp_dict.get('usage_patterns'))
+            temp_dict['usage_patterns'][constructor] = api_usage_patterns
+        
+        assert(temp_dict.get('library_name')==None)
+        temp_dict['library_name'] = library_name
+        predictions.append(temp_dict)
+    return predictions
+
 # def generate_api_usage_patterns(generative_model, tokenizer, model_inputs, num_beams, num_return_sequences):
 #     '''
 #     Function to generate API usage patterns
@@ -325,3 +372,25 @@ def predict_hw_config(classifier_model, classifier_tokenizer, classifier_head, l
     return prediction
 
 
+def initialize_all_components(config):
+    # load db
+    db_metadata, db_constructor = load_db(
+        config.get('db_metadata_path'), 
+        config.get('db_constructor_path')
+    )
+
+    # load model
+    model_retrieval = load_retrieval_model_lexical(
+        config.get('tokenizer_path_retrieval'),
+        config.get('max_k'),
+        db_metadata,
+    )
+
+    tokenizer_generative, model_generative = load_generative_model_codebert(config.get('model_path_generative'))
+
+    model_classifier, head, tokenizer_classifier = load_hw_classifier(
+        config.get('model_path_classifier'),
+        config.get('classifier_head_path')
+    )
+
+    return db_metadata, db_constructor, model_retrieval, model_generative, tokenizer_generative, model_classifier, head, tokenizer_classifier
