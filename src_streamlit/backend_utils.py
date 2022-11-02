@@ -224,6 +224,40 @@ def generate_api_usage_patterns(generative_model, tokenizer, model_input, num_be
     )
     return api_usage_patterns
 
+# def generate_api_usage_patterns(generative_model, tokenizer, model_inputs, num_beams, num_return_sequences):
+#     '''
+#     Function to generate API usage patterns
+
+#     Params:
+#     generative_model: a huggingface model
+#     tokenizer: a huggingface tokenizer
+#     model_inputs (list): a list of <library-name> [SEP] <constructor>
+#     num_beams (int): the beam width used for decoding
+#     num_return_sequences (int): how many API usage patterns are returned by the model
+
+#     Returns:
+#     api_usage_patterns (list): a list of API usage patterns
+#     '''
+#     model_inputs = tokenizer(
+#         model_inputs, 
+#         max_length=max_length,
+#         padding='max_length',
+#         return_tensors='pt',
+#         truncation=True)
+    
+#     model_output = generative_model.generate(
+#         **model_inputs,
+#         num_beams=num_beams,
+#         num_return_sequences=num_return_sequences
+#     )
+#     api_usage_patterns = tokenizer.batch_decode(
+#         model_output,
+#         skip_special_tokens=True
+#     )
+
+#     api_usage_patterns = [api_usage_patterns[i:i+num_return_sequences] for i in range(0, len(api_usage_patterns), num_return_sequences)] 
+#     return api_usage_patterns
+
 def prepare_input_classification_model(id_, db_metadata):
     '''
     Function to get a feature for a classification model using library id

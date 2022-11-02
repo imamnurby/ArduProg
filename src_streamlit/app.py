@@ -1,5 +1,5 @@
 import streamlit as st
-from backend_utils import load_db, load_retrieval_model_lexical, load_generative_model_codebert, load_hw_classifier, retrieve_libraries, prepare_input_generative_model, generate_api_usage_patterns, hw_classifier, predict_hw_config
+from backend_utils import load_db, load_retrieval_model_lexical, load_generative_model_codebert, load_hw_classifier, retrieve_libraries, prepare_input_generative_model, generate_api_usage_patterns, predict_hw_config
 from config import config, classifier_class_mapping
 
 st.title("ArduProg: From Hardware Setups to Sample Source Code Generation")
@@ -31,9 +31,6 @@ if 'model_classifier' not in st.session_state and 'head' not in st.session_state
 if 'prediction' not in st.session_state:
     st.session_state.prediction = None
 
-if 'hw_configs' not in st.session_state:
-    st.session_state.hw_configs = None
-
 def predict(
     input_query, 
     model_retrieval, 
@@ -54,8 +51,15 @@ def predict(
 
     input_generative_model_dict = prepare_input_generative_model(library_ids, db_constructor)
 
-    output_dict = {}
+    output_list = []
     for id_ in input_generative_model_dict:
+        temp_dict = {
+            'id': id_,
+            'library_name': None,
+            'hw_config': None,
+            'usage_patterns': {}
+        }
+        temp_dict['id'] = id_
         for input_generative_model in input_generative_model_dict.get(id_):
             api_usage_patterns = generate_api_usage_patterns(
                 model_generative,
@@ -69,11 +73,13 @@ def predict(
             library_name = temp[0].strip()
             constructor = temp[1].strip()
 
-            if library_name not in output_dict:
-                output_dict[library_name] = {}
-            
-            output_dict[library_name][constructor] = api_usage_patterns
-    
+            assert(constructor not in temp_dict.get('usage_patterns'))
+            temp_dict['usage_patterns'][constructor] = api_usage_patterns
+        
+        assert(temp_dict.get('library_name')==None)
+        temp_dict['library_name'] = library_name
+        output_list.append(temp_dict)
+
     hw_configs = predict_hw_config(
         st.session_state.model_classifier,
         st.session_state.tokenizer_classifier,
@@ -83,17 +89,10 @@ def predict(
         config.get('max_length')
     )
 
-    # hw_configs = predict_hw_config(
-    #     st.session_state.hw_classifier,
-    #     library_ids,
-    #     db_metadata,
-    #     config.get('max_length')
-    # )
+    for output_dict, hw_config in zip(output_list, hw_configs):
+        output_dict['hw_config'] = hw_config
 
-
-    st.session_state.prediction = output_dict
-    st.session_state.hw_configs = hw_configs
-    
+    st.session_state.prediction = output_list
 
 
 st.header("Enter a Query")
@@ -122,8 +121,3 @@ generate = st.button(
 
 if st.session_state.prediction != None:
     st.write(st.session_state.prediction)
-
-if st.session_state.hw_configs != None:
-    st.write(st.session_state.hw_configs)
-
-st.write(db_metadata[db_metadata.library=="DFRobot_DHT11"].features.tolist())
