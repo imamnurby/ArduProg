@@ -263,21 +263,6 @@ class hw_classifier:
         # prediction = [self.class_mapping.get(idx) for idx in prediction]
         return prediction
 
-# def predict_hw_config(model, library_ids, db_metadata, max_length):
-#     '''
-#     Function to predict hardware configuration
-
-#     Params:
-#     model (hw_classifier): a classifier
-#     library_ids (list): a list of library ids
-
-#     Returns:
-#     hw_configs (list): a list of hardware configurations
-#     '''
-#     features = [prepare_input_classification_model(id_, db_metadata) for id_ in library_ids]
-#     hw_configs = model.predict_config(features, max_length)
-#     return hw_configs
-
 def load_hw_classifier(model_path_classifier, model_path_classifier_head):
     '''
     Function to load a classifier model and classifier head
