@@ -32,7 +32,7 @@ config = {
 
 classifier_class_mapping = {
     0: {'protocol': 'UART',
-        'pin_mapping_hardware_to_arduino': {
+        'pin_connection_from_hw_to_arduino': {
             'arduino_mega': {
                 'RX-TX': ['0-1', '19-18', '17-16', '15-14'], 
             },
@@ -42,7 +42,7 @@ classifier_class_mapping = {
         }
     },
     1: {'protocol': 'SPI',
-        'pin_mapping_hardware_to_arduino': {
+        'pin_connection_from_hw_to_arduino': {
             'arduino_mega': {
                 'SCK-MOSI-MISO-CS': ['52-51-50-53'], 
             },
@@ -52,7 +52,7 @@ classifier_class_mapping = {
         },
     },
     2: {'protocol': 'I2C',
-        'pin_mapping_hardware_to_arduino': {
+        'pin_connection_from_hw_to_arduino': {
             'arduino_mega': {
                 'SDA-SCL': ['20-21'], 
             },
