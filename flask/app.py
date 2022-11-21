@@ -45,11 +45,10 @@ def call_predict_api(
 def hello_world():
     return "<p>Hello, World! This Yusuf</p>"
 
-# @app.route('/predict/', methods=['POST'])
-@app.route('/predict/')
+# @app.route('/predict/')
+@app.route('/predict', methods=['GET', 'POST'])
 def predict():
-    # temporary_input = "dht11"
-    user_query = request.args.get('user_query', None)
+    # user_query = request.args.get('user_query', None)
     # predictions = call_predict_api(
     #     user_query,
     #     model_retrieval,
@@ -64,7 +63,25 @@ def predict():
     # return jsonify({
     #     'class_id': 'temp'
     # })
-    return {'class_id': user_query}
+    # return {'class_id': user_query}
+
+    request_data = request.get_json()
+    user_query = request_data.get('user_query', None)
+
+    if user_query != None:
+        predictions = call_predict_api(
+                user_query,
+                model_retrieval,
+                model_generative,
+                model_classifier, classifier_head,
+                tokenizer_generative, tokenizer_classifier,
+                db_metadata, db_constructor,
+                config
+            )
+
+        return {
+            'predictions': predictions
+        }
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8111)
