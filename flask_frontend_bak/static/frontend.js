@@ -14,6 +14,11 @@ const response = [
           "DHT20.begin DHT20.lastRead DHT20.read DHT20.getHumidity DHT20.getTemperature",
           "DHT20.begin DHT20.read DHT20.getHumidity DHT20.getTemperature",
           "DHT20.begin DHT20.read DHT20.getHumidity"
+        ], 
+        "DHT12": [
+          "DHT12.begin",
+          "DHT12.begin DHT12.lastRead DHT12.read DHT12.getHumidity DHT12.getTemperature",
+          "DHT12.begin DHT12.read DHT12.getHumidity DHT12.getTemperature"
         ]
       },
       "Sensor Type": "Sensors",
@@ -72,116 +77,233 @@ const response = [
     
 
   //when retrieve is clicked
-  async function onSubmit(string){
-    //make background with the list on responses to grey
-    document.getElementById("grey-container").className = string;
-    // var user_query = document.getElementById("exampleFormControlInput1").value
-    //url_query = "http://10.27.32.183:8111/predict/?user_query=" + user_input
-    // url_query = "http://10.27.32.183:8111/predict"
+  async function onSubmit(){
+    document.getElementById("spinner").style.display = 'block';
+    document.getElementById("grey-container").className = 'album py-5 bg-light';
+
+    // let user_query = document.getElementById("exampleFormControlInput1").value
+    // let url_query = "http://10.27.32.183:8111/predict"
     // let predictions = await getResponse(url_query, user_query)
-    // console.log(predictions['predictions'])
-    // test_html = "<p>" + JSON.stringify(predictions['predictions']) + "</p>"
+    // let response = predictions['predictions']
+    document.getElementById("spinner").style.display = 'none';
     
-    // const response = predictions['predictions']
-    // console.log(response)
-    
-    html = ''
-
-
-    console.log(response)
-    console.log(response.length)
     //loop through number of results
+    html = ''
     for(let i=0; i < response.length; i++){
-      html += '<div class="row g-4 m-2"><div class="col-6"><div class="card border-primary mb-3"><div class="card-body">';
-      html += '<h5 class="card-title text-primary">'+ response[i]["library_name"] +'</h5>';
-      html += '<p class="card-text">'+ response[i]["Description"] +'</p></div>' ;
-      html += '<div class="card-footer"><div class=" d-flex justify-content-between align-items-center"><div class="btn-group"><a type="button" class="btn btn-sm btn-outline-secondary" href='+ response[i]["Github URL"] +'>View Github</a></div><a href="javascript:void(0)" id="myTooltip" data-bs-toggle="tooltip" data-bs-placement="right" onclick="onClickMore('+ response[i]["id"] +')">See Usage Patterns and Interface Configs</a></div> </div></div></div>';
-  
-      html += '<div class="col-6"><div id="'+ response[i]["id"] +'" style="display: none;" class="card border-primary mb-3"><div class="card-body"><h5 class="card-title text-primary">Usage Patterns</h5>'
-      // html += '<button type="button" class="btn btn-info" data-bs-toggle="collapse" data-bs-target="#collapseExample">Simple collapsible</button>';
-      // html += '<div id="collapseExample" class="collapse">';
-      // html += 'Lorem ipsum dolor sit amet, consectetur adipisicing elit';
-      // html += '</div>';
-      html += '<div class="position-absolute top-0 end-0"><button type="button" class="btn-close" aria-label="Close" onclick="onOut('+ response[i]["id"] +')"></button>';
-      html += '</div>';
-
-      let construct = Object.getOwnPropertyNames(response[i]["usage_patterns"])[0];
+      console.log(i)
+      html += '<div class="row g-4 m-2" id="predictions">';                                           
+      html +=   '<div class="col-6">';                                                                
+      html +=     '<div class="card border-primary mb-3">';                                           
+      // library name and description
+      html +=       '<div class="card-body">';                                                        
+      html +=         '<h5 class="card-title text-primary">'+ response[i]["library_name"] +'</h5>';
+      html +=           '<p class="card-text">'+ response[i]["Description"] +'</p>';
+      html +=       '</div>';
+      // end library name and description                                                                         
+      // group button bottom (View GitHub and See Usage Patterns and Configs)      
+      html +=         '<div class="card-footer">';                                                    
+      html +=           '<div class=" d-flex justify-content-between align-items-center">';           
+      html +=             '<div class="btn-group">'                                                   
+      html +=               '<a type="button" class="btn btn-sm btn-outline-secondary" href='+ response[i]["Github URL"] +'>View Github</a>';
+      html +=             '</div>'                                                                    
+      html +=             '<a href="javascript:void(0)" id="myTooltip" data-bs-toggle="tooltip" data-bs-placement="right" onclick="onClickMore('+ response[i]["id"] +')">See Usage Patterns and Interface Configs</a>';
+      html +=           '</div>';                                                                     
+      html +=         '</div>';                                                                        
+      html +=     '</div>';                                                                           
+      html +=   '</div>';                                                                             
+      // end card group button
+      html +=   '<div class="col-6"><div id="'+ response[i]["id"] +'" style="display: none;" class="card border-primary mb-3">';
+      html +=     '<div class="card-body">';
+      //begin accordion outer
+      html += '<div class="accordion" id="accordionOuter'+ i + '">';
+      // first item
+      html +=   '<div class="accordion-item">';
+      html +=     '<h2 class="accordion-header" id="headingOneOuter"'+ i + '>';
+      html +=       '<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne'+ i +'" aria-expanded="true" aria-controls="collapseOne'+ i +'">'
+      html +=          'Interface Configuration';
+      html +=        '</button>';
+      html +=     '</h2>';
+      html +=     '<div id="collapseOne'+ i +'" class="accordion-collapse collapse show" aria-labelledby="headingOneOuter"'+ i +'data-bs-parent="#accordionOuter'+ i + '">'
+      html +=       '<div class="accordion-body">'
+      // html +=         'Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven\'t heard of them accusamus labore sustainable VHS.'
       
-      // loop through the number of usage patterns
-      // for (let x=0; x < response[i]["usage_patterns"][construct].length; x++){
-      //   arrSeq = "";
-      //   arrSeq = response[i]["usage_patterns"][construct][x].split(" ")
-      //   html += '<b data-bs-toggle="collapse" data-bs-target="#collapseExample' + x + '">Pattern ' + (x+1) + ':</b>';
-      //   html += '<ul>'
-      //   for (let y=0; y<arrSeq.length; y++){
-      //     html += '<li id="collapseExample' + x + '"class="collapse">' + arrSeq[y] + '</li>';
-      //   }
-      //   html += '</ul>';
-      // }
-
-      // for (let x=0; x < response[i]["usage_patterns"][construct].length; x++){
-      //   arrSeq = "";
-      //   arrSeq = response[i]["usage_patterns"][construct][x].split(" ")
-      //   html += '<div data-bs-toggle="collapse" data-bs-target="#patternCollapse' + x + '">';
-      //   html += '<b>Pattern ' + (x+1) + ':</b>';
-      //   html += '<ul>'
-      //   for (let y=0; y<arrSeq.length; y++){
-      //     html += '<li id="patternCollapse' + x + '"class="collapse">' + arrSeq[y] + '</li>';
-      //   }
-      //   html += '</ul>';
-      //   html += '</div>'
-      // }
-      html += '<div class="accordion" id="accordionPanelsStayOpenExample">';
-      for (let x=0; x < response[i]["usage_patterns"][construct].length; x++){
-        arrSeq = "";
-        arrSeq = response[i]["usage_patterns"][construct][x].split(" ")
-        // html += '<div data-bs-toggle="collapse" data-bs-target="#patternCollapse' + x + '">';
-        // html += '<b>Pattern ' + (x+1) + ':</b>';
-        html += '<div class="accordion-item">';
-        html += '<h2 class="accordion-header" id="panelsStayOpen-heading' + x +'">';
-        if (x == 0){
-          html += '<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse' + x + '" aria-expanded="true" aria-controls="panelsStayOpen-collapse' + x + '">';
-        }
-        else {
-          html += '<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse' + x + '" aria-expanded="false" aria-controls="panelsStayOpen-collapse' + x + '">';
-        }
-        html += 'Pattern' + (x+1);
-        html += '</button>';
-        html += '</h2>';
-        if (x== 0){
-          html += '<div style="padding-top: 10px" id="panelsStayOpen-collapse' + x + '" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-heading' + x + '">';
-        } else {
-          html += '<div style="padding-top: 10px" id="panelsStayOpen-collapse' + x + '" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading' + x + '">';
-        }
-        html += '<ul>';
-        for (let y=0; y<arrSeq.length; y++){
-          html += '<li>' + arrSeq[y] + '</li>';
-        }
-        html += '</ul>';
-        html += '</div>';
-        html += '</div>';
-      }
-      html += '</div>'
-      html += '<h5 style="padding-top: 10px" class="card-title text-primary">Interface Configuration</h5>';
+      // interface configuration begin
       html += '<h6>Protocol: '+ response[i]["hw_config"]["protocol"]+ '</h6>';
-      // html += '<h6 class="card-title text-primary">Protocol: </h6><h6>'+ response[i]["hw_config"]["protocol"]+ '</h6>';
       html += '<table class="table table-hover"><thead><tr><th>Arduino Type</th><th>I/O hardware --> Arduino</th></tr></thead><tbody>'
-  
       //loop through hardware config
       for (const property in response[i]["hw_config"]["pin_connection_from_hw_to_arduino"]){
         let firstLetter = property.charAt(0).toUpperCase();
         let remLetter = property.substring(1).split("_");
-  
         html += '<tr><td>' + firstLetter + remLetter[0] + '_' + remLetter[1].charAt(0).toUpperCase() + remLetter[1].substring(1) + '</td><td>';
-  
         //loop through the arduino type
         for (let y=0; y < response[i]["hw_config"]["pin_connection_from_hw_to_arduino"][property].length; y++){
           html += '(' + (response[i]["hw_config"]["pin_connection_from_hw_to_arduino"][property][y][0] + ',' + response[i]["hw_config"]["pin_connection_from_hw_to_arduino"][property][y][1]) + ') ';        
         }
         html += ' </td></tr>';
       }
-  
       html += '</tbody></table> ';
+      // end interface configuration
+      
+      html +=       '</div>'
+      html +=     '</div>'
+      html +=   '</div>'
+      // end first item
+      
+      //second item
+      html +=   '<div class="accordion-item">';
+      html +=     '<h2 class="accordion-header" id="headingTwoOuter'+ i +'">';
+      html +=       '<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo'+ i +'" aria-expanded="false" aria-controls="collapseTwo'+ i +'">'
+      html +=          'Usage Patterns';
+      html +=        '</button>';
+      html +=     '</h2>';
+      html +=     '<div id="collapseTwo'+ i +'" class="accordion-collapse collapse" aria-labelledby="headingTwoOuter'+ i +'" data-bs-parent="#accordionOuter'+ i + '">'
+      html +=       '<div class="accordion-body">'
+      // html +=         'Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven\'t heard of them accusamus labore sustainable VHS.'
+      // begin usage pattern
+      Object.keys(response[i]["usage_patterns"]).forEach(function(key) {        
+        html += '<h6>Sensor: '+ key+ '</h6>';
+        let usages_arr = response[i]["usage_patterns"][key]
+
+        // begin accordion inner
+        // html += '<div class="accordion" id="accordionExample">'
+        // // begin item
+        // html += ' <div class="accordion-item">'
+        // html += '   <h2 class="accordion-header" id="headingOne">'
+        // html += '     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">'
+        // html += '       Accordion Item #1'
+        // html += '     </button>'
+        // html += '   </h2>'
+        // html += '   <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">'
+        // html += '     <div class="accordion-body">'
+        // html += '       <strong>This is the first item\'s accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It\'s also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.'
+        // html += '     </div>'
+        // html += '   </div>'
+        // html += ' </div>'
+        // //end item
+        // html += '</div>'
+        // end accordion inner
+        
+        
+
+        // being accordion inner
+        html += '<div style="margin-bottom: 15px" class="accordion" id="accordionPanelsStayOpenExample"' + response[i]["id"] + key + '>';
+        
+        for (let x=0; x < usages_arr.length; x++){
+          let pattern = usages_arr[x].split(" ")
+          
+          html += '<div data-bs-toggle="collapse" data-bs-target="#patternCollapse' + response[i]["id"] + key + x + '">';
+          html += '<div class="accordion-item">';
+          html += '<h2 class="accordion-header" id="panelsStayOpen-heading' + response[i]["id"] + key +'">';
+
+          if (x == 0){
+            html += '<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse' + response[i]["id"] + key + x + '" aria-expanded="true" aria-controls="panelsStayOpen-collapse' + response[i]["id"] + key + x + '">';
+          }
+          else {
+            html += '<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse' + response[i]["id"] + key + x + '" aria-expanded="false" aria-controls="panelsStayOpen-collapse' + response[i]["id"] + key + x + '">';
+          }
+
+          html += 'Pattern ' + (x+1);
+          html += '</button>';
+          html += '</h2>';
+
+          if (x== 0){
+            html += '<div style="padding-top: 10px" id="panelsStayOpen-collapse' + response[i]["id"] + key + x + '" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-heading' + response[i]["id"] + key + x + '">';
+          } else {
+            html += '<div style="padding-top: 10px" id="panelsStayOpen-collapse' + response[i]["id"] + key + x + '" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading' + response[i]["id"] + key + x + '">';
+          }
+          
+          html += '<ul>';
+          for (let y=0; y<pattern.length; y++){
+            html += '<li>' + pattern[y] + '</li>';
+          }
+          html += '</ul>';
+          
+          html += '</div>';
+          html += '</div>';
+          html += '</div>';
+        }
+        html += '</div>'
+      });
+      // end usage pattern 
+      
+      html +=       '</div>'
+      html +=     '</div>'
+      html +=   '</div>'
+      //end second item
+      
+      html += '</div>';
+      // end accordion outer
+      
+      
+      // // interface configuration begin
+      // html += '<h5 class="card-title text-primary">Interface Configuration</h5>';
+      // html += '<h6>Protocol: '+ response[i]["hw_config"]["protocol"]+ '</h6>';
+      // html += '<table class="table table-hover"><thead><tr><th>Arduino Type</th><th>I/O hardware --> Arduino</th></tr></thead><tbody>'
+      // //loop through hardware config
+      // for (const property in response[i]["hw_config"]["pin_connection_from_hw_to_arduino"]){
+      //   let firstLetter = property.charAt(0).toUpperCase();
+      //   let remLetter = property.substring(1).split("_");
+      //   html += '<tr><td>' + firstLetter + remLetter[0] + '_' + remLetter[1].charAt(0).toUpperCase() + remLetter[1].substring(1) + '</td><td>';
+      //   //loop through the arduino type
+      //   for (let y=0; y < response[i]["hw_config"]["pin_connection_from_hw_to_arduino"][property].length; y++){
+      //     html += '(' + (response[i]["hw_config"]["pin_connection_from_hw_to_arduino"][property][y][0] + ',' + response[i]["hw_config"]["pin_connection_from_hw_to_arduino"][property][y][1]) + ') ';        
+      //   }
+      //   html += ' </td></tr>';
+      // }
+      // html += '</tbody></table> ';
+      // end interface configuration
+      // begin usage-pattern
+      // html +=       '<h5 style="margin-top: 10px" class="card-title text-primary">Usage Patterns</h5>'
+      //button close
+      html +=       '<div class="position-absolute top-0 end-0">'
+      html +=         '<button type="button" class="btn-close" aria-label="Close" onclick="onOut('+ response[i]["id"] +')"></button>';
+      html +=       '</div>';
+      // end button close
+      
+      // begin usage pattern
+      // Object.keys(response[i]["usage_patterns"]).forEach(function(key) {        
+      //   html += '<h6>Sensor: '+ key+ '</h6>';
+      //   html += '<div style="margin-bottom: 15px" class="accordion" id="accordionPanelsStayOpenExample"' + response[i]["id"] + key + '>';
+      //   let usages_arr = response[i]["usage_patterns"][key]
+
+      //   for (let x=0; x < usages_arr.length; x++){
+      //     let pattern = usages_arr[x].split(" ")
+          
+      //     html += '<div data-bs-toggle="collapse" data-bs-target="#patternCollapse' + response[i]["id"] + key + x + '">';
+      //     html += '<div class="accordion-item">';
+      //     html += '<h2 class="accordion-header" id="panelsStayOpen-heading' + response[i]["id"] + key +'">';
+
+      //     if (x == 0){
+      //       html += '<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse' + response[i]["id"] + key + x + '" aria-expanded="true" aria-controls="panelsStayOpen-collapse' + response[i]["id"] + key + x + '">';
+      //     }
+      //     else {
+      //       html += '<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse' + response[i]["id"] + key + x + '" aria-expanded="false" aria-controls="panelsStayOpen-collapse' + response[i]["id"] + key + x + '">';
+      //     }
+
+      //     html += 'Pattern ' + (x+1);
+      //     html += '</button>';
+      //     html += '</h2>';
+
+      //     if (x== 0){
+      //       html += '<div style="padding-top: 10px" id="panelsStayOpen-collapse' + response[i]["id"] + key + x + '" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-heading' + response[i]["id"] + key + x + '">';
+      //     } else {
+      //       html += '<div style="padding-top: 10px" id="panelsStayOpen-collapse' + response[i]["id"] + key + x + '" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading' + response[i]["id"] + key + x + '">';
+      //     }
+          
+      //     html += '<ul>';
+      //     for (let y=0; y<pattern.length; y++){
+      //       html += '<li>' + pattern[y] + '</li>';
+      //     }
+      //     html += '</ul>';
+          
+      //     html += '</div>';
+      //     html += '</div>';
+      //     html += '</div>';
+      //   }
+      //   html += '</div>'
+      // });
+      // end usage pattern 
+
       // html += '<h6 class="card-title text-primary">Protocol: </h6><h6>'+ response[i]["hw_config"]["protocol"]+ '</h6></div></div>';
       html += '</div></div>';
       html += '</div></div>';
@@ -189,8 +311,7 @@ const response = [
   
     //append the html to the container
     document.getElementById("main-parent").innerHTML = (html);
-  
-  
+
     html2 = '<div class="container"><p class="float-right"><a href="#">Back to top</a></p>';
     //append footer to allow going back to the top
     document.getElementById("footer").innerHTML = (html2);
