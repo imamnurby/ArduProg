@@ -506,7 +506,7 @@ def make_predictions(input_query,
 
     if len(library_ids) == 0:
         print("null libraries")
-        return 'null'
+        return []
 
     print("generate usage patterns")
     predictions = generate_api_usage_patterns_batch(

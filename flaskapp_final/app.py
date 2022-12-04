@@ -47,9 +47,10 @@ def hello_world():
 
 @app.route('/predict', methods=['POST', 'GET'])
 def predict():
-    user_query = request.args.get("user_query")
     print(f"user_query: {user_query}")
+    user_query = request.args.get("user_query")
 
+    predictions = []
     if user_query != None:
         print("predicting")
         predictions = call_predict_api(
@@ -62,14 +63,9 @@ def predict():
                 config
             )
         
-        # print(predictions)
-        if type(predictions) == str:
-            if predictions == 'null':
-                return jsonify({'predictions': 'null'})
-
-        return jsonify({
-            'predictions': predictions
-        })
+    return jsonify({
+        'predictions': predictions
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8111)
