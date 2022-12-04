@@ -47,7 +47,7 @@
       
       
       // if (typeof predictions['predictions'] == "string"){
-      if (response.length > 0){
+      if (response.length < 1){
         alert("Library not found in the database. Please try another query!")
         document.getElementById("footer").innerHTML = '';
       } else {
