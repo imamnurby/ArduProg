@@ -1,53 +1,4 @@
-// const response = [
-//     {
-//       "id": 446929723,
-//       "library_name": "DHT20",
-//       "hw_config": {
-//         "protocol": "I2C",
-//         "pin_connection_from_hw_to_arduino": {
-//           "arduino_mega": [["SDA", "21"], ["SCL", "21"]],
-//           "arduino_uno": [["SDA", "A4"], ["SCL", "A5"]],
-//           }
-//       },
-//       "usage_patterns": {
-//         "DHT20": [
-//           "DHT20.begin DHT20.lastRead DHT20.read DHT20.getHumidity DHT20.getTemperature",
-//           "DHT20.begin DHT20.read DHT20.getHumidity DHT20.getTemperature",
-//           "DHT20.begin DHT20.read DHT20.getHumidity"
-//         ], 
-//         "DHT12": [
-//           "DHT12.begin",
-//           "DHT12.begin DHT12.lastRead DHT12.read DHT12.getHumidity DHT12.getTemperature",
-//           "DHT12.begin DHT12.read DHT12.getHumidity DHT12.getTemperature"
-//         ]
-//       },
-//       "Sensor Type": "Sensors",
-//       "Github URL": "https://github.com/RobTillaart/DHT20",
-//       "Description": "Arduino library for I2C DHT20 temperature and humidity sensor."
-//     },
-//     {
-//       "id": 255120181,
-//       "library_name": "DHT12",
-//       "hw_config": {
-//         "protocol": "I2C",
-//         "pin_connection_from_hw_to_arduino": {
-//           "arduino_mega": [["SDA", "20"], ["SCL", "21"]],
-//           "arduino_uno": [["SDA", "A4"], ["SCL", "A5"]],
-//           }
-//         },
-//       "usage_patterns": {
-//         "DHT12": [
-//           "DHT12.begin",
-//           "DHT12.begin DHT12.lastRead DHT12.read DHT12.getHumidity DHT12.getTemperature",
-//           "DHT12.begin DHT12.read DHT12.getHumidity DHT12.getTemperature"
-//         ]
-//       },
-//       "Sensor Type": "Sensors",
-//       "Github URL": "https://github.com/RobTillaart/DHT12",
-//       "Description": "Arduino library for I2C DHT12 temperature and humidity sensor."
-//     }
-//   ];
-  
+ 
   //display the pop up with more information
   function onClickMore(string){
     document.getElementById(string).style.display ='block';
@@ -58,49 +9,7 @@
     document.getElementById(string).style.display ='none';
   }
   
-  // async function getResponse(url, user_query){
-  //   try {
-  //     let predictions = await fetch(url,{
-  //       method: 'POST',
-  //       body: JSON.stringify({'user_query': user_query}),
-  //       headers: {
-  //         'Content-type': 'application/json; charset=UTF-8',
-  //         'Access-Control-Allow-Origin': '*',
-  //         'Access-Control-Allow-Methods': 'POST, GET',
-  //       }
-  //     });
-  //     return predictions.json()
-  //   } catch (error) {
-  //     console.log(error)
-  //   }
-  // }
-
-  // async function getResponse(url, user_query){
-  //   try {
-  //     let final_url = url + '?user_query=' + user_query
-  //     console.log(final_url)
-
-  //     let predictions = await fetch(final_url);
-  //     console.log(predictions)
-      
-  //     if (predictions.status == 200){
-  //       return predictions.json()
-  //     } 
-  //     else{
-  //       document.getElementById("spinner").style.display = 'none';
-  //       let error_msg = "Error, return code: " + predictions.status
-  //       alert(error_msg);
-  //     }
-    
-  //   } catch (error) {
-  //     document.getElementById("spinner").style.display = 'none';
-  //     console.log("error")
-  //     console.log(error)
-  //     let error_msg = "Error, return code: " + predictions.status
-  //     alert(error_msg);
-  //   }
-  // }
-
+  // function to fetch response from the backend
   async function getResponse(url, user_query){
       let final_url = url + '?user_query=' + user_query
       console.log(final_url)
