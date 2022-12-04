@@ -3,8 +3,6 @@ from backend_utils import initialize_all_components, make_predictions
 from config import classifier_class_mapping, config
 import json
 
-# todo: downgrade version sklearn to 1.0.2
-
 app = Flask(__name__)
 components = initialize_all_components(config)
 db_metadata = components[0]
