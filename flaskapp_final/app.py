@@ -47,9 +47,9 @@ def hello_world():
 
 @app.route('/predict', methods=['POST', 'GET'])
 def predict():
-    print(f"user_query: {user_query}")
     user_query = request.args.get("user_query")
-
+    print(f"user_query: {user_query}")
+    
     predictions = []
     if user_query != None:
         print("predicting")
