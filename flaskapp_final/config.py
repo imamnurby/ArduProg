@@ -1,6 +1,6 @@
 config = {
     # tokenizer
-    'tokenizer_path_retrieval': 'imamnurby/bow-tokenizer-uncased',
+    'tokenizer_path_retrieval': 'xxx/bow-tokenizer-uncased',
 
     # model_path
     'model_path_retrieval': '../models/retrieval_distillbert',
