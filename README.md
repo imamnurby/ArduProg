@@ -18,3 +18,5 @@ Run the following commands:
 
 Optionally, you can change the model and training setting by modifying the dictionary values inside `config.py`
 
+# Evaluation
+All the evaluation codes are inside `src_eval`
